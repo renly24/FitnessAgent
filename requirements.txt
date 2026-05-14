@@ -1,4 +1,4 @@
-anthropic>=0.40.0
+google-genai>=1.0.0
 ask-sdk-core>=1.19.0
 ask-sdk-model>=1.91.0
 ask-sdk-webservice-support>=1.19.0

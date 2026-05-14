@@ -1,18 +1,18 @@
-"""Claude API agent for generating fitness motivation messages."""
+"""Gemini API agent for generating fitness motivation messages."""
 
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import anthropic
+from google import genai
 
-_client: anthropic.Anthropic | None = None
+_client: genai.Client | None = None
 
 
-def _get_client() -> anthropic.Anthropic:
+def _get_client() -> genai.Client:
     global _client
     if _client is None:
-        _client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        _client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     return _client
 
 
@@ -38,9 +38,12 @@ def generate_motivation_message(
         record_summary: Brief summary of recent workout records
         phase: 1=motivation only, 2=suggest today's menu
     """
-    context = _build_context(trigger_time, record_summary)
+    _FALLBACK = {
+        "朝": "おはよう！今日も脂肪を燃やすぞ！体を動かしてから一日を始めよう！",
+        "夕方": "まだ間に合う！今日の運動、やらずに終わるつもりか！",
+    }
 
-    phase1_instruction = (
+    phase1_system = (
         "あなたはユーザーのダイエット・体脂肪削減をサポートする熱血フィットネストレーナーです。"
         "Alexaが読み上げる短いモチベーションメッセージを生成してください。\n"
         "条件:\n"
@@ -48,7 +51,7 @@ def generate_motivation_message(
         "- 朝ならエネルギッシュに一日を始める煽り、夕方なら「まだ間に合う」「今やらないでいつやる」系の煽り\n"
         "- ダイエット・体脂肪削減にフォーカスした言葉\n"
         "- 体育会系で熱血、でも親しみやすいトーン\n"
-        "- SSMLタグは不要、読み上げテキストのみ返してください"
+        "- 読み上げテキストのみ返してください。前置きや説明は不要です"
     )
 
     phase2_addition = (
@@ -56,27 +59,15 @@ def generate_motivation_message(
         "メニューはダイエット効果が高いものを選び、合計で10〜20分程度に収めてください。"
     )
 
-    instruction = phase1_instruction + (phase2_addition if phase >= 2 else "")
+    prompt = phase1_system + (phase2_addition if phase >= 2 else "")
+    context = _build_context(trigger_time, record_summary)
 
-    _FALLBACK = {
-        "朝": "おはよう！今日も脂肪を燃やすぞ！体を動かしてから一日を始めよう！",
-        "夕方": "まだ間に合う！今日の運動、やらずに終わるつもりか！",
-    }
-
-    client = _get_client()
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=300,
-            timeout=6.0,
-            system=instruction,
-            messages=[
-                {
-                    "role": "user",
-                    "content": context,
-                }
-            ],
+        client = _get_client()
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=f"{prompt}\n\n{context}",
         )
-        return response.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return _FALLBACK.get(trigger_time, _FALLBACK["朝"])
