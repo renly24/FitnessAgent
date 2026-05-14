@@ -58,16 +58,25 @@ def generate_motivation_message(
 
     instruction = phase1_instruction + (phase2_addition if phase >= 2 else "")
 
+    _FALLBACK = {
+        "朝": "おはよう！今日も脂肪を燃やすぞ！体を動かしてから一日を始めよう！",
+        "夕方": "まだ間に合う！今日の運動、やらずに終わるつもりか！",
+    }
+
     client = _get_client()
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=300,
-        system=instruction,
-        messages=[
-            {
-                "role": "user",
-                "content": context,
-            }
-        ],
-    )
-    return response.content[0].text.strip()
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=300,
+            timeout=6.0,
+            system=instruction,
+            messages=[
+                {
+                    "role": "user",
+                    "content": context,
+                }
+            ],
+        )
+        return response.content[0].text.strip()
+    except Exception:
+        return _FALLBACK.get(trigger_time, _FALLBACK["朝"])
