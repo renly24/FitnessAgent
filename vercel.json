@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/alexa",
+      "dest": "/api/alexa.py"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health.py"
+    }
+  ]
+}

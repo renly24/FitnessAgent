@@ -1,0 +1,59 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "フィットネスエージェント",
+      "intents": [
+        {
+          "name": "WorkoutDoneIntent",
+          "slots": [],
+          "samples": [
+            "やった",
+            "運動した",
+            "やりました",
+            "できた",
+            "完了",
+            "トレーニングした",
+            "やったよ"
+          ]
+        },
+        {
+          "name": "WorkoutSkipIntent",
+          "slots": [],
+          "samples": [
+            "まだ",
+            "やってない",
+            "できなかった",
+            "スキップ",
+            "今日は無理",
+            "パス",
+            "やっていない"
+          ]
+        },
+        {
+          "name": "StatusIntent",
+          "slots": [],
+          "samples": [
+            "記録を教えて",
+            "最近の記録",
+            "どのくらいやった",
+            "進捗を教えて",
+            "ステータス",
+            "何日やった"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent"
+        },
+        {
+          "name": "AMAZON.CancelIntent"
+        },
+        {
+          "name": "AMAZON.StopIntent"
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent"
+        }
+      ]
+    }
+  }
+}
