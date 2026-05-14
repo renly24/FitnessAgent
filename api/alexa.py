@@ -15,14 +15,14 @@ from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.utils import is_intent_name, is_request_type
 from ask_sdk_model import Response
 from ask_sdk_model.ui import SimpleCard
-from flask import Flask, request
 from ask_sdk_webservice_support.webservice_handler import WebserviceSkillHandler
-from ask_sdk_webservice_support.verifier import RequestVerifier, TimestampVerifier
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from lib.agent import generate_motivation_message
-from lib.storage import get_recent_summary, get_today_record, save_record
+from lib.storage import get_recent_summary, save_record
 
-app = Flask(__name__)
+app = FastAPI()
 
 _SKILL_ID = os.getenv("ALEXA_SKILL_ID")
 _TZ = ZoneInfo(os.getenv("TIMEZONE", "Asia/Tokyo"))
@@ -193,9 +193,12 @@ _webservice_handler = WebserviceSkillHandler(
 )
 
 
-@app.route("/api/alexa", methods=["POST"])
-def alexa_endpoint():
-    return _webservice_handler.verify_request_and_dispatch(
-        http_request_headers=dict(request.headers),
-        http_request_body=request.data.decode("utf-8"),
+@app.post("/api/alexa")
+async def alexa_endpoint(request: Request):
+    body = (await request.body()).decode("utf-8")
+    headers = dict(request.headers)
+    response = _webservice_handler.verify_request_and_dispatch(
+        http_request_headers=headers,
+        http_request_body=body,
     )
+    return JSONResponse(content=response)
